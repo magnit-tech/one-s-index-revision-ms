@@ -1,0 +1,98 @@
+﻿select
+    t.relname as table_name,
+	column_names.Index_id as index_id,
+    i.relname as index_name,
+	COALESCE(column_names.colname, '') as columns,
+	COALESCE(IncludedColumns.colname, '') as included_columns,
+    case when ix.indisclustered = true or ix.indisprimary = true then 'Clustered index'
+        when ix.indisclustered = true and ix.indisunique = true then 'Nonclustered unique index'
+        else 'Nonclustered columnstore index'
+        end as index_type,
+    case when ix.indisunique = true then 'Unique'
+        else 'Not unique'
+		end as unique		
+from
+	pg_catalog.pg_class t
+join 
+	pg_catalog.pg_index ix    
+on 
+	t.oid = ix.indrelid
+join 
+	pg_catalog.pg_class i     
+on 
+	i.oid = ix.indexrelid
+join 
+	pg_catalog.pg_namespace n 
+on 
+	n.oid = t.relnamespace
+join
+	(SELECT 
+	 	i.indexrelid as Index_id,
+		string_agg(a.attname, ',') as colname
+	FROM 
+		(
+			SELECT
+				i.indnkeyatts,
+				i.indexrelid as indexrelid,
+				i.indrelid,
+				pg_catalog.unnest(indkey) AS table_colnum,
+				pg_catalog.unnest(ARRAY(SELECT pg_catalog.generate_series(1, i.indnatts) AS n)) attnum
+			FROM
+				pg_catalog.pg_index i
+			order by
+				i.indexrelid,
+				i.indrelid,
+				attnum
+		) i 
+	JOIN 
+		pg_catalog.pg_attribute a
+	ON 
+		a.attrelid = i.indrelid 
+		AND i.table_colnum = a.attnum
+	WHERE 
+		i.attnum <= i.indnkeyatts
+	group by
+		i.indexrelid
+	 ) as column_names
+on
+	ix.indexrelid = column_names.Index_id	
+left join
+	(SELECT 
+	 	i.indexrelid as Index_id,
+		string_agg(a.attname, ',') as colname
+	FROM 
+		(
+			SELECT
+				i.indnkeyatts,
+				i.indexrelid as indexrelid,
+				i.indrelid,
+				pg_catalog.unnest(indkey) AS table_colnum,
+				pg_catalog.unnest(ARRAY(SELECT pg_catalog.generate_series(1, i.indnatts) AS n)) attnum
+			FROM
+				pg_catalog.pg_index i
+			order by
+				i.indexrelid,
+				i.indrelid,
+				attnum
+		) i 
+	JOIN 
+		pg_catalog.pg_attribute a
+	ON 
+		a.attrelid = i.indrelid 
+		AND i.table_colnum = a.attnum
+	WHERE 
+		i.attnum > i.indnkeyatts
+	group by
+		i.indexrelid
+	 ) as IncludedColumns
+on
+	ix.indexrelid = IncludedColumns.Index_id	
+where 
+	t.relkind = 'r'
+	and not(ix.indisprimary = true and ix.indisclustered = false) -- Исключаем первичный ключ таблицы, т.к. 1С теперь выкидывает эти индексы
+	and n.nspname = 'public'
+	AND NOT t.relname IN ('config','configcas','configcassave','configsave','files','params','schemastorage','v8users','v8userpwdplcs','v8usersmatkeys')
+	--and t.relname  = '_reference180'
+order by
+    t.relname,
+    ix.indexrelid

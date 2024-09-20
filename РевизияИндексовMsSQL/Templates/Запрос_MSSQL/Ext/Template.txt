@@ -1,0 +1,54 @@
+﻿select 
+	t.name table_name,
+	i.index_id index_id,
+	i.[name] as index_name,
+    substring(column_names, 1, len(column_names)-1) as columns,
+	COALESCE(substring(IncludedColumns, 1, len(IncludedColumns)-1), '') included_columns,
+    case when i.[type] = 1 then 'Clustered index'
+        when i.[type] = 2 then 'Nonclustered unique index'
+        when i.[type] = 3 then 'XML index'
+        when i.[type] = 4 then 'Spatial index'
+        when i.[type] = 5 then 'Clustered columnstore index'
+        when i.[type] = 6 then 'Nonclustered columnstore index'
+        when i.[type] = 7 then 'Nonclustered hash index'
+        end as Index_type,
+    case when i.is_unique = 1 then 'Unique'
+        else 'Not unique' end as [unique]
+from 
+	sys.objects t
+inner join 
+	sys.indexes i
+on 
+	t.object_id = i.object_id
+cross apply (select col.[name] + ','
+                    from sys.index_columns ic
+                        inner join sys.columns col
+                            on ic.object_id = col.object_id
+                            and ic.column_id = col.column_id
+                    where ic.object_id = t.object_id
+						and ic.is_included_column <> 1
+                        and ic.index_id = i.index_id
+                            order by key_ordinal
+                            for xml path ('') 
+			) D (column_names)
+cross apply (select col.[name] + ','
+                    from sys.index_columns ic
+                        inner join sys.columns col
+                            on ic.object_id = col.object_id
+                            and ic.column_id = col.column_id
+                    where ic.object_id = t.object_id
+						and ic.is_included_column = 1
+                        and ic.index_id = i.index_id
+                            order by key_ordinal
+                            for xml path ('') 
+			) E (IncludedColumns)
+
+
+where 
+	t.is_ms_shipped <> 1
+	and i.index_id > 0
+	AND NOT t.name IN ('Config','ConfigCAS','ConfigCASSave','ConfigSave','Files','Params','SchemaStorage','v8users','V8USERSMATKEYS','V8USERPWDPLCS')
+	--and t.name = '_Reference180'
+order by
+	t.name,
+	i.index_id
