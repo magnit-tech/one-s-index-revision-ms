@@ -111,6 +111,16 @@
 				</v8:item>
 			</title>
 		</field>
+		<field xsi:type="DataSetFieldField">
+			<dataPath>СкриптУдаленияДублей</dataPath>
+			<field>СкриптУдаленияДублей</field>
+			<title xsi:type="v8:LocalStringType">
+				<v8:item>
+					<v8:lang>ru</v8:lang>
+					<v8:content>Скрипт удаления дублей</v8:content>
+				</v8:item>
+			</title>
+		</field>
 		<dataSource>ИсточникДанных1</dataSource>
 		<objectName>Таблица</objectName>
 	</dataSet>
@@ -140,6 +150,10 @@
 "))</expression>
 		<group>ИмяИндекса</group>
 	</totalField>
+	<totalField>
+		<dataPath>СкриптУдаленияДублей</dataPath>
+		<expression>Максимум(СкриптУдаленияДублей)</expression>
+	</totalField>
 	<settingsVariant>
 		<dcsset:name>Основной</dcsset:name>
 		<dcsset:presentation xsi:type="xs:string">Основной</dcsset:presentation>
@@ -153,6 +167,9 @@
 				</dcsset:item>
 				<dcsset:item xsi:type="dcsset:SelectedItemField">
 					<dcsset:field>Скрипт</dcsset:field>
+				</dcsset:item>
+				<dcsset:item xsi:type="dcsset:SelectedItemField">
+					<dcsset:field>СкриптУдаленияДублей</dcsset:field>
 				</dcsset:item>
 				<dcsset:item xsi:type="dcsset:SelectedItemField">
 					<dcsset:use>false</dcsset:use>
@@ -195,6 +212,9 @@
 					<dcsset:selection>
 						<dcsset:item>
 							<dcsset:field>Скрипт</dcsset:field>
+						</dcsset:item>
+						<dcsset:item>
+							<dcsset:field>СкриптУдаленияДублей</dcsset:field>
 						</dcsset:item>
 					</dcsset:selection>
 					<dcsset:filter/>
@@ -328,6 +348,9 @@
 				<dcsset:item xsi:type="dcsset:SelectedItemField">
 					<dcsset:field>Скрипт</dcsset:field>
 				</dcsset:item>
+				<dcsset:item xsi:type="dcsset:SelectedItemField">
+					<dcsset:field>СкриптУдаленияДублей</dcsset:field>
+				</dcsset:item>
 			</dcsset:selection>
 			<dcsset:filter>
 				<dcsset:item xsi:type="dcsset:FilterItemComparison">
@@ -358,17 +381,19 @@
 			</dcsset:order>
 			<dcsset:conditionalAppearance>
 				<dcsset:item>
-					<dcsset:use>false</dcsset:use>
 					<dcsset:selection>
 						<dcsset:item>
 							<dcsset:field>Скрипт</dcsset:field>
+						</dcsset:item>
+						<dcsset:item>
+							<dcsset:field>СкриптУдаленияДублей</dcsset:field>
 						</dcsset:item>
 					</dcsset:selection>
 					<dcsset:filter/>
 					<dcsset:appearance>
 						<dcscor:item xsi:type="dcsset:SettingsParameterValue">
 							<dcscor:parameter>МаксимальнаяВысота</dcscor:parameter>
-							<dcscor:value xsi:type="xs:decimal">15</dcscor:value>
+							<dcscor:value xsi:type="xs:decimal">30</dcscor:value>
 						</dcscor:item>
 					</dcsset:appearance>
 					<dcsset:useInHierarchicalGroup>DontUse</dcsset:useInHierarchicalGroup>
